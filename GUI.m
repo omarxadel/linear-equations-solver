@@ -190,6 +190,23 @@ function calculate_Callback(hObject, eventdata, handles)
 % hObject    handle to calculate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+f1 = evalin(symengine, get(handles.f1, 'String'));
+f2 = evalin(symengine, get(handles.f2, 'String'));
+f3 = evalin(symengine, get(handles.f3, 'String'));
+eqns = [f1;f2;f3];
+[A, b] = equationsToMatrix(eqns);
+
+
+if(get(handles.gauss_el, 'Value'))
+    ans = gauss_el(A, b);
+elseif(get(handles.jordan, 'Value'))
+    ans = jordan_el(A, b);
+    ans = double(ans);
+    strjoin(cellstr(num2str(ans')),',');
+end
+
+
+set(handles.ans, 'String', ans);
 
 
 % --- Executes on button press in reset.
@@ -213,8 +230,13 @@ function initialize_gui(fig_handle, handles, isreset)
 % If the metricdata field is present and the reset flag is false, it means
 % we are we are just re-initializing a GUI by calling it from the cmd line
 % while it is up. So, bail out as we dont want to reset the data.
-
+clc
 set(handles.f1, 'String', 0);
+set(handles.f2, 'String', 0);
+set(handles.f3, 'String', 0);
+set(handles.f4, 'String', 0);
+set(handles.f5, 'String', 0);
+
 set(handles.ans, 'String', 0);
 
 set(handles.unitgroup, 'SelectedObject', handles.gauss_el);
