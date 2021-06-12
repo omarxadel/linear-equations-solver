@@ -1,4 +1,4 @@
-function [ mat ] = eliminate( mat, i )
+function [ mat ] = elimination( mat, i )
 %ELIMINATE A function that eliminates matrix elements to reach an upper
 %triangular matrix
 %   Input:
