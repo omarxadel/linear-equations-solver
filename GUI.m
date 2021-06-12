@@ -193,14 +193,31 @@ function calculate_Callback(hObject, eventdata, handles)
 f1 = evalin(symengine, get(handles.f1, 'String'));
 f2 = evalin(symengine, get(handles.f2, 'String'));
 f3 = evalin(symengine, get(handles.f3, 'String'));
-eqns = [f1;f2;f3];
+f4 = evalin(symengine, get(handles.f4, 'String'));
+eqns = [f1;f2;f3;f4];
 [A, b] = equationsToMatrix(eqns);
-
 
 if(get(handles.gauss_el, 'Value'))
     ans = gauss_el(A, b);
 elseif(get(handles.jordan, 'Value'))
     ans = jordan_el(A, b);
+    ans = double(ans);
+    strjoin(cellstr(num2str(ans')),',');
+elseif(get(handles.seidel, 'Value'))
+    %check if the entered matrix is a square matrix
+    [na , ma ] = size (A);
+    if na ~= ma
+         errordlg('Matrix A must be a square matrix','Error');
+        return
+    end
+    % check if B is a column matrix
+    [nb , mb ] = size (B);
+    if nb ~= na || mb~=1
+        errordlg('Matrix B must be a column matrix','Error');
+        return
+    end
+
+    ans = gauss_seidel(A, b);
     ans = double(ans);
     strjoin(cellstr(num2str(ans')),',');
 end
