@@ -16,7 +16,7 @@ function [ output_args ] = jordan_el( A, B )
             output_args = 'No solution!';
             return
         end
-        X = eliminate(X, i);
+        X = elimination(X, i);
         i = i+1;
     end
     
