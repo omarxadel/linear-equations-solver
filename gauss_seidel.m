@@ -4,6 +4,7 @@ function [output_args, k] = gauss_seidel(A, B, X)
 %   Input:
 %           A: Matrix of coeffecients 
 %           B: Matrix of constants
+%           X: Initial guesses
 %   This function takes matrix of coeffecients and the matrix of constants
 %   and computes the solution to the system of linear equations using
 %   Gaussian-Seidel Elimination
