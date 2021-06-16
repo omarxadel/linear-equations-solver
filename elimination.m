@@ -1,6 +1,6 @@
 function [ mat ] = elimination( mat, i )
-%ELIMINATE A function that eliminates matrix elements to reach an upper
-%triangular matrix
+%ELIMINATE A function that eliminates matrix elements to reach a diagonal
+%matrix
 %   Input:
 %           mat: Matrix to eliminate
 %           row: Row to eliminate with
