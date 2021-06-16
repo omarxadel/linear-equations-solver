@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 08-Jun-2021 16:12:14
+% Last Modified by GUIDE v2.5 12-Jun-2021 20:08:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -190,19 +190,20 @@ function calculate_Callback(hObject, eventdata, handles)
 % hObject    handle to calculate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-f1 = evalin(symengine, get(handles.f1, 'String'));
-f2 = evalin(symengine, get(handles.f2, 'String'));
-f3 = evalin(symengine, get(handles.f3, 'String'));
-f4 = evalin(symengine, get(handles.f4, 'String'));
-eqns = [f1;f2;f3;f4];
-[A, b] = equationsToMatrix(eqns);
+f1 = get(handles.f1, 'String');
+s = size(f1);
+for i = 1:s(1)
+    funcs(i) = evalin(symengine, f1(i, :));
+end
+% f4 = evalin(symengine, get(handles.f4, 'String'));
+% eqns = [f1;f2;f3];
+[A, b] = equationsToMatrix(funcs);
 
-if(get(handles.gauss_el, 'Value'))
-    ans = gauss_el(A, b);
-elseif(get(handles.jordan, 'Value'))
+if(get(handles.jordan, 'Value'))
+    tic();
     ans = jordan_el(A, b);
-    ans = double(ans);
-    strjoin(cellstr(num2str(ans')),',');
+    toc();
+    set(handles.interval, 'enable', 'off');
 elseif(get(handles.seidel, 'Value'))
     %check if the entered matrix is a square matrix
     [na , ma ] = size (A);
@@ -211,15 +212,38 @@ elseif(get(handles.seidel, 'Value'))
         return
     end
     % check if B is a column matrix
-    [nb , mb ] = size (B);
+    [nb , mb ] = size (b);
     if nb ~= na || mb~=1
         errordlg('Matrix B must be a column matrix','Error');
         return
     end
-
-    ans = gauss_seidel(A, b);
-    ans = double(ans);
+    int = get(handles.interval,'String');
+    int = str2double(strsplit(int));
+    int = int';
+    if length(int)~= na
+        int =  ones(na,1);
+        int_1 = '';
+        space = ' ';
+        for i=1:na
+            int_1 = [int_1, num2str(int(i)), space];
+        end
+        set(handles.interval,'String',int_1);
+    end
+    tic();
+    [X, k] = gauss_seidel(A, b, int);
+    toc();
+    ans = double(X(:, k));
     strjoin(cellstr(num2str(ans')),',');
+    r = size(X);
+    x = 1:k;
+    figure(1);
+    for i = 1:r(1)
+        for j = 1:k
+            plot(x, X(i, :));
+            hold on;
+        end
+    end
+    hold off
 end
 
 
@@ -239,6 +263,11 @@ function unitgroup_SelectionChangedFcn(hObject, eventdata, handles)
 % hObject    handle to the selected object in unitgroup 
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if hObject == handles.jordan
+    set(handles.interval, 'enable', 'off');
+elseif hObject == handles.seidel
+    set(handles.interval, 'enable', 'on');
+end
 
 
 
@@ -249,14 +278,74 @@ function initialize_gui(fig_handle, handles, isreset)
 % while it is up. So, bail out as we dont want to reset the data.
 clc
 set(handles.f1, 'String', 0);
-set(handles.f2, 'String', 0);
-set(handles.f3, 'String', 0);
-set(handles.f4, 'String', 0);
-set(handles.f5, 'String', 0);
+set(handles.f1, 'Min', 0, 'Max', 2);
 
 set(handles.ans, 'String', 0);
+set(handles.interval, 'String', 0);
 
-set(handles.unitgroup, 'SelectedObject', handles.gauss_el);
+set(handles.unitgroup, 'SelectedObject', handles.jordan);
+set(handles.interval, 'enable', 'off');
 
 % Update handles structure
 guidata(handles.figure1, handles);
+
+
+% --- Executes on button press in browse.
+function browse_Callback(hObject, eventdata, handles)
+% hObject    handle to browse (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[file,path] = uigetfile('*.txt');
+if isequal(file,0)
+else
+   fileID = fopen(fullfile(path,file), 'r');
+   fs = str2double(fgetl(fileID));
+   method = fgetl(fileID);
+   if strcmp(method,'Gaussian-Jordan')
+        set(handles.interval, 'enable', 'off');
+   elseif strcmp(method,'Gaussian-Seidel')
+        set(handles.interval, 'enable', 'on');
+   end
+   output = '';
+   for i=1:fs-1
+       str = fgetl(fileID);
+       output = sprintf('%s %s\n', output, str);
+   end
+   str = fgetl(fileID);
+   output = sprintf('%s %s', output, str);
+   output = strsplit(output, '\n');
+   output = output';
+   output = char(output);
+   set(handles.f1, 'String', output);
+   
+   if(strcmp(method, 'Gaussian-Jordan'))
+       set(handles.jordan, 'Value', 1);
+   elseif(strcmp(method, 'Gaussian-Seidel'))
+       set(handles.seidel, 'Value', 1);
+       int = fgetl(fileID);
+       set(handles.interval,'String',int);
+   end
+end
+
+
+
+function interval_Callback(hObject, eventdata, handles)
+% hObject    handle to interval (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of interval as text
+%        str2double(get(hObject,'String')) returns contents of interval as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function interval_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to interval (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
