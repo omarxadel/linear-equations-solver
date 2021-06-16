@@ -1,4 +1,4 @@
-function [output_args] = gauss_seidel(A, B)
+function [output_args, k] = gauss_seidel(A, B, X)
 %Gauss_seidel Find the solution to a system of linear equations using
 %Gauss_seidel Elimination
 %   Input:
@@ -10,20 +10,17 @@ function [output_args] = gauss_seidel(A, B)
 
 
 tol = 0.001;
-    
+[na , ~ ] = size (A);
 % Separation of matrix A into lower triangular and upper triangular matrices
 % A = D + L + U
 D = diag(diag(A));
 L = tril(A)- D;
 U = triu(A)- D;
 
-X0 = ones(na,1);
-
 % allowable error in final answer
 t = tol*ones(na,1);
 k= 1;
 
-X( : , 1 ) = X0;
 err= 1000000000*rand(na,1);                                     % initial error assumption for looping
 while sum(abs(err) >= t) ~= zeros(na,1)
     X ( : ,k+ 1 ) = -inv(D+L)*(U)*X(:, k) + inv(D+L)*B;        % Gauss-Seidel formula
@@ -31,7 +28,7 @@ while sum(abs(err) >= t) ~= zeros(na,1)
     k = k + 1;
 end
 
-output_args=X(:, k);
+output_args = X;
 
 end
 
