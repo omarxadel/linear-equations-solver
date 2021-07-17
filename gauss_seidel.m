@@ -10,7 +10,7 @@ function [output_args, k] = gauss_seidel(A, B, X)
 %   Gaussian-Seidel Elimination
 
 
-tol = 0.001;
+tol = 0.055;
 [na , ~ ] = size (A);
 % Separation of matrix A into lower triangular and upper triangular matrices
 % A = D + L + U
